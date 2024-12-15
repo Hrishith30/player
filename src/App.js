@@ -231,6 +231,27 @@ function App() {
     };
   }, [showPlaylist]);
 
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // Add these properties for mobile background playback
+    audio.setAttribute('playsinline', 'true');
+    audio.setAttribute('webkit-playsinline', 'true');
+    audio.setAttribute('x-webkit-airplay', 'allow');
+
+    // Optional: Request wake lock to prevent device from sleeping
+    try {
+      if ('wakeLock' in navigator) {
+        navigator.wakeLock.request('screen').catch(err => 
+          console.log('Wake Lock error:', err)
+        );
+      }
+    } catch (err) {
+      console.log('Wake Lock API not supported');
+    }
+  }, []);
+
   return (
     <div className="music-player-container">
       <div className="player-controls">
@@ -314,7 +335,11 @@ function App() {
         </div>
       )}
 
-      <audio ref={audioRef} />
+      <audio 
+        ref={audioRef}
+        playsInline
+        preload="auto"
+      />
     </div>
   );
 }
