@@ -173,51 +173,57 @@ function App() {
     }
   }, [currentSongIndex, playlist]);
 
+  // Initialize audio context on user interaction
+  const initializeAudio = () => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      analyzerRef.current = audioContextRef.current.createAnalyser();
+      analyzerRef.current.fftSize = 128;
+
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      try {
+        const source = audioContextRef.current.createMediaElementSource(audio);
+        source.connect(analyzerRef.current);
+        analyzerRef.current.connect(audioContextRef.current.destination);
+      } catch (error) {
+        console.log('Audio already connected');
+      }
+    }
+
+    // Resume audio context if it's suspended
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+  };
+
+  // Set up analyzer update loop
+  const updateAnalyzer = () => {
+    if (analyzerRef.current) {
+      const dataArray = new Uint8Array(analyzerRef.current.frequencyBinCount);
+      analyzerRef.current.getByteFrequencyData(dataArray);
+      setAnalyzerData(dataArray);
+    }
+    requestAnimationFrame(updateAnalyzer);
+  };
+
+  // Start analyzer update loop
+  const animationFrame = requestAnimationFrame(updateAnalyzer);
+
+  // Add click listener to initialize audio context
+  document.addEventListener('click', initializeAudio, { once: true });
+
+  // Add touch event listeners for mobile controls
   useEffect(() => {
-    // Initialize audio context on user interaction
-    const initializeAudio = () => {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-        analyzerRef.current = audioContextRef.current.createAnalyser();
-        analyzerRef.current.fftSize = 128;
-
-        const audio = audioRef.current;
-        if (!audio) return;
-
-        try {
-          const source = audioContextRef.current.createMediaElementSource(audio);
-          source.connect(analyzerRef.current);
-          analyzerRef.current.connect(audioContextRef.current.destination);
-        } catch (error) {
-          console.log('Audio already connected');
-        }
-      }
-
-      // Resume audio context if it's suspended
-      if (audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume();
-      }
+    const handleTouchStart = () => {
+      initializeAudio();
     };
 
-    // Set up analyzer update loop
-    const updateAnalyzer = () => {
-      if (analyzerRef.current) {
-        const dataArray = new Uint8Array(analyzerRef.current.frequencyBinCount);
-        analyzerRef.current.getByteFrequencyData(dataArray);
-        setAnalyzerData(dataArray);
-      }
-      requestAnimationFrame(updateAnalyzer);
-    };
-
-    // Start analyzer update loop
-    const animationFrame = requestAnimationFrame(updateAnalyzer);
-
-    // Add click listener to initialize audio context
-    document.addEventListener('click', initializeAudio, { once: true });
+    document.addEventListener('touchstart', handleTouchStart, { once: true });
 
     return () => {
-      cancelAnimationFrame(animationFrame);
-      document.removeEventListener('click', initializeAudio);
+      document.removeEventListener('touchstart', handleTouchStart);
     };
   }, []);
 
