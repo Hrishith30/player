@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/player/static/css/main.71a2e7a6.css",
-    "main.js": "/player/static/js/main.961fa4f9.js",
+    "main.css": "/player/static/css/main.825655f6.css",
+    "main.js": "/player/static/js/main.16a1a4d8.js",
     "static/js/488.b5fb6f0b.chunk.js": "/player/static/js/488.b5fb6f0b.chunk.js",
     "static/media/Chuttamalle.mp3": "/player/static/media/Chuttamalle.d910c4ae404acac691aa.mp3",
     "static/media/Fear.mp3": "/player/static/media/Fear.4028e0b5376e4909f210.mp3",
@@ -10,12 +10,12 @@
     "static/media/Ayudha Pooja.mp3": "/player/static/media/Ayudha Pooja.40c050024a0656f57150.mp3",
     "static/media/All Hail The Tiger.mp3": "/player/static/media/All Hail The Tiger.375acbf9208575313a9d.mp3",
     "index.html": "/player/index.html",
-    "main.71a2e7a6.css.map": "/player/static/css/main.71a2e7a6.css.map",
-    "main.961fa4f9.js.map": "/player/static/js/main.961fa4f9.js.map",
+    "main.825655f6.css.map": "/player/static/css/main.825655f6.css.map",
+    "main.16a1a4d8.js.map": "/player/static/js/main.16a1a4d8.js.map",
     "488.b5fb6f0b.chunk.js.map": "/player/static/js/488.b5fb6f0b.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.71a2e7a6.css",
-    "static/js/main.961fa4f9.js"
+    "static/css/main.825655f6.css",
+    "static/js/main.16a1a4d8.js"
   ]
 }
