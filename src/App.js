@@ -107,6 +107,13 @@ function App() {
     setIsMuted(newVolume === 0);
   };
 
+  const handleTouchVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    audioRef.current.volume = newVolume;
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
+  };
+
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -311,6 +318,7 @@ function App() {
             step="0.01"
             value={volume}
             onChange={handleVolumeChange}
+            onTouchEnd={handleTouchVolumeChange}
           />
         </div>
 
