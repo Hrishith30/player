@@ -34,7 +34,6 @@ function App() {
             id: Math.random().toString(36).substr(2, 9),
             title,
             url,
-            artist: 'Unknown Artist',
           };
         });
 
@@ -237,7 +236,6 @@ function App() {
       <div className="player-controls">
         <div className="song-info">
           <h3>{playlist[currentSongIndex]?.title || 'No Song Loaded'}</h3>
-          <p>{playlist[currentSongIndex]?.artist || 'Unknown Artist'}</p>
         </div>
 
         <div className="equalizer">
