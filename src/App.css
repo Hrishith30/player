@@ -270,46 +270,21 @@ body {
   transition: transform 0.3s ease;
 }
 
-/* Additional media queries */
-@media (max-width: 768px) {
-  .playlist-sidebar {
-    width: 250px;
-  }
-  
-  .music-player-container {
-    max-width: 600px;
-  }
+.equalizer {
+  display: flex;
+  align-items: flex-end;
+  height: 50px;
+  gap: 2px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  margin: 10px 0;
 }
 
-@media (max-width: 480px) {
-  .playlist-sidebar {
-    width: 100%;
-    transform: translateX(100%);
-  }
-
-  .playlist-sidebar.open {
-    transform: translateX(0);
-  }
-  
-  .volume-controls {
-    flex-direction: column;
-  }
-  
-  .volume-controls input[type="range"] {
-    width: 80px;
-  }
-}
-
-@media (max-width: 320px) {
-  .main-controls {
-    flex-wrap: wrap;
-  }
-  
-  .song-info h3 {
-    font-size: 1rem;
-  }
-  
-  .song-info p {
-    font-size: 0.8rem;
-  }
+.equalizer-bar {
+  flex: 1;
+  background: #4CAF50;
+  min-width: 3px;
+  border-radius: 2px;
+  transition: height 0.05s ease;
 }

@@ -16,8 +16,11 @@ function App() {
   const [playlist, setPlaylist] = useState([]);
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [analyzerData, setAnalyzerData] = useState(new Uint8Array(64));
   const audioRef = useRef(null);
   const progressBarRef = useRef(null);
+  const analyzerRef = useRef(null);
+  const audioContextRef = useRef(null);
 
   useEffect(() => {
     const loadSongs = () => {
@@ -68,6 +71,12 @@ function App() {
 
   const handlePlayPause = useCallback(() => {
     const audio = audioRef.current;
+    if (!audio) return;
+
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+
     if (isPlaying) {
       audio.pause();
     } else {
@@ -157,6 +166,54 @@ function App() {
     }
   }, [currentSongIndex, playlist]);
 
+  useEffect(() => {
+    // Initialize audio context on user interaction
+    const initializeAudio = () => {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        analyzerRef.current = audioContextRef.current.createAnalyser();
+        analyzerRef.current.fftSize = 128;
+
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        try {
+          const source = audioContextRef.current.createMediaElementSource(audio);
+          source.connect(analyzerRef.current);
+          analyzerRef.current.connect(audioContextRef.current.destination);
+        } catch (error) {
+          console.log('Audio already connected');
+        }
+      }
+
+      // Resume audio context if it's suspended
+      if (audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume();
+      }
+    };
+
+    // Set up analyzer update loop
+    const updateAnalyzer = () => {
+      if (analyzerRef.current) {
+        const dataArray = new Uint8Array(analyzerRef.current.frequencyBinCount);
+        analyzerRef.current.getByteFrequencyData(dataArray);
+        setAnalyzerData(dataArray);
+      }
+      requestAnimationFrame(updateAnalyzer);
+    };
+
+    // Start analyzer update loop
+    const animationFrame = requestAnimationFrame(updateAnalyzer);
+
+    // Add click listener to initialize audio context
+    document.addEventListener('click', initializeAudio, { once: true });
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      document.removeEventListener('click', initializeAudio);
+    };
+  }, []);
+
   return (
     <div className="music-player-container">
       <div className="player-controls">
@@ -165,11 +222,20 @@ function App() {
           <p>{playlist[currentSongIndex]?.artist || 'Unknown Artist'}</p>
         </div>
 
-        <div
-          className="progress-bar"
-          ref={progressBarRef}
-          onClick={handleProgressBarClick}
-        >
+        <div className="equalizer">
+          {analyzerData && [...analyzerData].map((value, index) => (
+            <div
+              key={index}
+              className="equalizer-bar"
+              style={{
+                height: `${value * 0.5}%`,
+                backgroundColor: `hsl(${(index * 360) / analyzerData.length}, 70%, 60%)`
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="progress-bar" ref={progressBarRef} onClick={handleProgressBarClick}>
           <div
             className="progress"
             style={{ width: `${(currentTime / duration) * 100}%` }}
