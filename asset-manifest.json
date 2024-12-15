@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/player/static/css/main.825655f6.css",
-    "main.js": "/player/static/js/main.5f3b0242.js",
+    "main.js": "/player/static/js/main.f0d5ae21.js",
     "static/js/488.b5fb6f0b.chunk.js": "/player/static/js/488.b5fb6f0b.chunk.js",
     "static/media/Sooseki.mp3": "/player/static/media/Sooseki.5dad8c14b2e17612b514.mp3",
     "static/media/Pushpa Pushpa.mp3": "/player/static/media/Pushpa Pushpa.0dd65e436b03d630f63f.mp3",
@@ -9,15 +9,23 @@
     "static/media/Kissik.mp3": "/player/static/media/Kissik.26831a4f30e8a15510bd.mp3",
     "static/media/Chuttamalle.mp3": "/player/static/media/Chuttamalle.d910c4ae404acac691aa.mp3",
     "static/media/Fear.mp3": "/player/static/media/Fear.4028e0b5376e4909f210.mp3",
+    "static/media/ORendu Prema Meghaalila (Reprise).mp3": "/player/static/media/ORendu Prema Meghaalila (Reprise).e2747e7c19925e0274b3.mp3",
+    "static/media/03 - Newyork Nagaram  - SenSongsMp3.co.mp3": "/player/static/media/03 - Newyork Nagaram  - SenSongsMp3.co.cbd2e82e71e25b3d83b1.mp3",
+    "static/media/Oka Maru Kalisina Andam - SenSongsMp3.Co.mp3": "/player/static/media/Oka Maru Kalisina Andam - SenSongsMp3.Co.78861f1140f7e4f2a2d2.mp3",
+    "static/media/02 - June Pothey  - SenSongsMp3.co.mp3": "/player/static/media/02 - June Pothey  - SenSongsMp3.co.3f28a8e4d1065c75356c.mp3",
+    "static/media/02 - Preminche Premavaa  - SenSongsMp3.co.mp3": "/player/static/media/02 - Preminche Premavaa  - SenSongsMp3.co.62fcc8e9ce0c26308d2b.mp3",
     "static/media/Daavudi.mp3": "/player/static/media/Daavudi.a7a2314be3bc3aab7270.mp3",
+    "static/media/O Rendu Prema Meghaalila.mp3": "/player/static/media/O Rendu Prema Meghaalila.e205dbdfa65222c1e4b4.mp3",
+    "static/media/01 - Asale Pilla - SenSongsMp3.co.mp3": "/player/static/media/01 - Asale Pilla - SenSongsMp3.co.280362e856a6368edcb2.mp3",
+    "static/media/Anuvanuvuu Lyrical  Om Bheem Bush  Sree Vishnu, Rahul, Priyadarshi  Arijit Singh  Sunny M.R..mp3": "/player/static/media/Anuvanuvuu Lyrical  Om Bheem Bush  Sree Vishnu, Rahul, Priyadarshi  Arijit Singh  Sunny M.R..544edab5a874293a987c.mp3",
     "static/media/Ayudha Pooja.mp3": "/player/static/media/Ayudha Pooja.40c050024a0656f57150.mp3",
     "index.html": "/player/index.html",
     "main.825655f6.css.map": "/player/static/css/main.825655f6.css.map",
-    "main.5f3b0242.js.map": "/player/static/js/main.5f3b0242.js.map",
+    "main.f0d5ae21.js.map": "/player/static/js/main.f0d5ae21.js.map",
     "488.b5fb6f0b.chunk.js.map": "/player/static/js/488.b5fb6f0b.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.825655f6.css",
-    "static/js/main.5f3b0242.js"
+    "static/js/main.f0d5ae21.js"
   ]
 }
