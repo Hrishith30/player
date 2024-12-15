@@ -21,6 +21,7 @@ function App() {
   const progressBarRef = useRef(null);
   const analyzerRef = useRef(null);
   const audioContextRef = useRef(null);
+  const playlistRef = useRef(null);
 
   useEffect(() => {
     const loadSongs = () => {
@@ -214,6 +215,23 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (playlistRef.current && !playlistRef.current.contains(event.target) && 
+          !event.target.closest('.playlist-toggle-btn')) {
+        setShowPlaylist(false);
+      }
+    };
+
+    if (showPlaylist) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showPlaylist]);
+
   return (
     <div className="music-player-container">
       <div className="player-controls">
@@ -283,7 +301,7 @@ function App() {
       </div>
 
       {showPlaylist && (
-        <div className="playlist-sidebar">
+        <div className="playlist-sidebar" ref={playlistRef}>
           <div className="playlist">
             {playlist.map((song, index) => (
               <div
