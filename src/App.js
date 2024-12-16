@@ -23,22 +23,6 @@ function App() {
   const audioContextRef = useRef(null);
   const playlistRef = useRef(null);
 
-  const configureAudioSession = () => {
-    try {
-      if (window.webkit && window.webkit.messageHandlers) {
-        // iOS-specific audio session configuration
-        if (window.webkit.messageHandlers.configureAudioSession) {
-          window.webkit.messageHandlers.configureAudioSession.postMessage({
-            category: 'playback',
-            options: ['mixWithOthers', 'allowBluetooth', 'allowBluetoothA2DP']
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error configuring audio session:', error);
-    }
-  };
-
   useEffect(() => {
     const loadSongs = () => {
       try {
@@ -89,9 +73,6 @@ function App() {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Configure audio session before playing
-    configureAudioSession();
-
     if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
       audioContextRef.current.resume();
     }
@@ -99,15 +80,7 @@ function App() {
     if (isPlaying) {
       audio.pause();
     } else {
-      // Play audio after user interaction
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            // Audio started playing
-          })
-          .catch(error => console.error('Playback failed:', error));
-      }
+      audio.play().catch((error) => console.error('Playback failed:', error));
     }
     setIsPlaying(!isPlaying);
   }, [isPlaying]);
@@ -299,36 +272,21 @@ function App() {
     // Enable background audio playback
     const enableBackgroundPlayback = async () => {
       try {
-        // Configure audio session for iOS
-        configureAudioSession();
-
         if ('mediaSession' in navigator) {
           navigator.mediaSession.setActionHandler('play', handlePlayPause);
           navigator.mediaSession.setActionHandler('pause', handlePlayPause);
           navigator.mediaSession.setActionHandler('previoustrack', handlePrevious);
           navigator.mediaSession.setActionHandler('nexttrack', handleNext);
-
-          // Set metadata for iOS
-          navigator.mediaSession.metadata = new MediaMetadata({
-            title: playlist[currentSongIndex]?.title || 'Unknown',
-            artist: 'Unknown Artist',
-            album: 'Unknown Album',
-          });
         }
 
-        // iOS specific settings
-        audio.setAttribute('playsinline', 'true');
-        audio.setAttribute('webkit-playsinline', 'true');
-        audio.setAttribute('x-webkit-airplay', 'allow');
+        // Request audio focus (Android)
+        if (audio.mozAudioChannelType) {
+          audio.mozAudioChannelType = 'content';
+        }
 
         // Set audio session category (iOS)
         if (window.webkit && window.webkit.messageHandlers) {
-          // Request audio session
-          document.addEventListener('visibilitychange', () => {
-            if (document.hidden && isPlaying) {
-              audio.play().catch(error => console.error('Playback failed:', error));
-            }
-          });
+          window.webkit.messageHandlers.toggleAudioSession?.postMessage("play");
         }
       } catch (error) {
         console.error('Error setting up background playback:', error);
@@ -349,65 +307,7 @@ function App() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isPlaying, handlePlayPause, handlePrevious, handleNext, currentSongIndex, playlist]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleAppStateChange = () => {
-      if (document.hidden) {
-        // App going to background
-        if (isPlaying) {
-          // Ensure audio keeps playing
-          audio.play().catch(error => console.error('Playback failed:', error));
-        }
-      } else {
-        // App coming to foreground
-        configureAudioSession();
-        if (isPlaying) {
-          audio.play().catch(error => console.error('Playback failed:', error));
-        }
-      }
-    };
-
-    // Configure audio session on mount
-    configureAudioSession();
-
-    // Listen for visibility changes
-    document.addEventListener('visibilitychange', handleAppStateChange);
-    
-    // Handle audio interruptions
-    audio.addEventListener('pause', () => {
-      if (isPlaying) {
-        audio.play().catch(error => console.error('Playback failed:', error));
-      }
-    });
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleAppStateChange);
-      audio.removeEventListener('pause', () => {});
-    };
-  }, [isPlaying]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleAudioFocus = () => {
-      if ('audioSession' in navigator) {
-        navigator.audioSession.addEventListener('statechange', () => {
-          if (navigator.audioSession.state === 'interrupted') {
-            audio.pause();
-          } else if (navigator.audioSession.state === 'running' && isPlaying) {
-            audio.play().catch(error => console.error('Playback failed:', error));
-          }
-        });
-      }
-    };
-
-    handleAudioFocus();
-  }, [isPlaying]);
+  }, [isPlaying, handlePlayPause, handlePrevious, handleNext]);
 
   return (
     <div className="music-player-container">
@@ -500,8 +400,6 @@ function App() {
         x-webkit-airplay="allow"
         webkit-playsinline="true"
         controls={false}
-        autoPlay={false}
-        style={{ display: 'none' }}
       />
     </div>
   );
