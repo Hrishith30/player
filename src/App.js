@@ -269,45 +269,56 @@ function App() {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Enable background audio playback
-    const enableBackgroundPlayback = async () => {
+    // iOS-specific settings
+    audio.setAttribute('playsinline', 'true');
+    audio.setAttribute('webkit-playsinline', 'true');
+    audio.setAttribute('x-webkit-airplay', 'allow');
+    
+    // Enable background mode for audio session
+    if (window.webkit && window.webkit.messageHandlers) {
       try {
-        if ('mediaSession' in navigator) {
-          navigator.mediaSession.setActionHandler('play', handlePlayPause);
-          navigator.mediaSession.setActionHandler('pause', handlePlayPause);
-          navigator.mediaSession.setActionHandler('previoustrack', handlePrevious);
-          navigator.mediaSession.setActionHandler('nexttrack', handleNext);
-        }
-
-        // Request audio focus (Android)
-        if (audio.mozAudioChannelType) {
-          audio.mozAudioChannelType = 'content';
-        }
-
-        // Set audio session category (iOS)
-        if (window.webkit && window.webkit.messageHandlers) {
-          window.webkit.messageHandlers.toggleAudioSession?.postMessage("play");
-        }
+        // Set audio session category to playback
+        window.webkit.messageHandlers.audioSession?.postMessage({
+          category: 'playback',
+          options: ['mixWithOthers', 'duckOthers']
+        });
       } catch (error) {
-        console.error('Error setting up background playback:', error);
+        console.log('iOS audio session setup error:', error);
       }
-    };
+    }
 
-    enableBackgroundPlayback();
+    // Configure audio for background playback
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', handlePlayPause);
+      navigator.mediaSession.setActionHandler('pause', handlePlayPause);
+      navigator.mediaSession.setActionHandler('previoustrack', handlePrevious);
+      navigator.mediaSession.setActionHandler('nexttrack', handleNext);
 
-    // Handle visibility change
-    const handleVisibilityChange = () => {
-      if (document.hidden && isPlaying) {
-        audio.play().catch(error => console.error('Playback failed:', error));
+      // Set metadata for iOS control center
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: playlist[currentSongIndex]?.title || 'Unknown Title',
+        artist: 'Music Player',
+        album: 'Music Player Album',
+      });
+    }
+
+    // Handle audio interruptions
+    audio.addEventListener('pause', () => {
+      if (isPlaying) {
+        // Try to resume playback
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.log('Playback resume failed:', error);
+          });
+        }
       }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    });
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      audio.removeEventListener('pause', () => {});
     };
-  }, [isPlaying, handlePlayPause, handlePrevious, handleNext]);
+  }, [currentSongIndex, isPlaying, handlePlayPause, handlePrevious, handleNext, playlist]);
 
   return (
     <div className="music-player-container">
@@ -400,6 +411,7 @@ function App() {
         x-webkit-airplay="allow"
         webkit-playsinline="true"
         controls={false}
+        className="audio-element"
       />
     </div>
   );
