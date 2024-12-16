@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/player/static/css/main.4c241a2c.css",
-    "main.js": "/player/static/js/main.ee7e5d87.js",
+    "main.js": "/player/static/js/main.52829da2.js",
     "static/js/488.b5fb6f0b.chunk.js": "/player/static/js/488.b5fb6f0b.chunk.js",
     "static/media/Sooseki.mp3": "/player/static/media/Sooseki.5dad8c14b2e17612b514.mp3",
     "static/media/Pushpa Pushpa.mp3": "/player/static/media/Pushpa Pushpa.0dd65e436b03d630f63f.mp3",
@@ -34,15 +34,16 @@
     "static/media/4-Hello Rammante-SenSongsMp3.Co.mp3": "/player/static/media/4-Hello Rammante-SenSongsMp3.Co.84b3739b4c0d39ba1487.mp3",
     "static/media/Neeve-SenSongsMp3.Co.mp3": "/player/static/media/Neeve-SenSongsMp3.Co.c0f34b7a9b803ccb352c.mp3",
     "static/media/06 - Seheri - SenSongsMp3.co.mp3": "/player/static/media/06 - Seheri - SenSongsMp3.co.c9933d788e10bd778e3a.mp3",
+    "static/media/OY OY.mp3": "/player/static/media/OY OY.237d2821babd7cd8ead5.mp3",
     "static/media/Ayudha Pooja.mp3": "/player/static/media/Ayudha Pooja.40c050024a0656f57150.mp3",
     "static/media/5- O Range-SenSongsMp3.Co.mp3": "/player/static/media/5- O Range-SenSongsMp3.Co.45299c7825dc308bcbbb.mp3",
     "index.html": "/player/index.html",
     "main.4c241a2c.css.map": "/player/static/css/main.4c241a2c.css.map",
-    "main.ee7e5d87.js.map": "/player/static/js/main.ee7e5d87.js.map",
+    "main.52829da2.js.map": "/player/static/js/main.52829da2.js.map",
     "488.b5fb6f0b.chunk.js.map": "/player/static/js/488.b5fb6f0b.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.4c241a2c.css",
-    "static/js/main.ee7e5d87.js"
+    "static/js/main.52829da2.js"
   ]
 }
