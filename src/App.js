@@ -269,56 +269,45 @@ function App() {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // iOS-specific settings
-    audio.setAttribute('playsinline', 'true');
-    audio.setAttribute('webkit-playsinline', 'true');
-    audio.setAttribute('x-webkit-airplay', 'allow');
-    
-    // Enable background mode for audio session
-    if (window.webkit && window.webkit.messageHandlers) {
+    // Enable background audio playback
+    const enableBackgroundPlayback = async () => {
       try {
-        // Set audio session category to playback
-        window.webkit.messageHandlers.audioSession?.postMessage({
-          category: 'playback',
-          options: ['mixWithOthers', 'duckOthers']
-        });
-      } catch (error) {
-        console.log('iOS audio session setup error:', error);
-      }
-    }
-
-    // Configure audio for background playback
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.setActionHandler('play', handlePlayPause);
-      navigator.mediaSession.setActionHandler('pause', handlePlayPause);
-      navigator.mediaSession.setActionHandler('previoustrack', handlePrevious);
-      navigator.mediaSession.setActionHandler('nexttrack', handleNext);
-
-      // Set metadata for iOS control center
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: playlist[currentSongIndex]?.title || 'Unknown Title',
-        artist: 'Music Player',
-        album: 'Music Player Album',
-      });
-    }
-
-    // Handle audio interruptions
-    audio.addEventListener('pause', () => {
-      if (isPlaying) {
-        // Try to resume playback
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            console.log('Playback resume failed:', error);
-          });
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.setActionHandler('play', handlePlayPause);
+          navigator.mediaSession.setActionHandler('pause', handlePlayPause);
+          navigator.mediaSession.setActionHandler('previoustrack', handlePrevious);
+          navigator.mediaSession.setActionHandler('nexttrack', handleNext);
         }
+
+        // Request audio focus (Android)
+        if (audio.mozAudioChannelType) {
+          audio.mozAudioChannelType = 'content';
+        }
+
+        // Set audio session category (iOS)
+        if (window.webkit && window.webkit.messageHandlers) {
+          window.webkit.messageHandlers.toggleAudioSession?.postMessage("play");
+        }
+      } catch (error) {
+        console.error('Error setting up background playback:', error);
       }
-    });
+    };
+
+    enableBackgroundPlayback();
+
+    // Handle visibility change
+    const handleVisibilityChange = () => {
+      if (document.hidden && isPlaying) {
+        audio.play().catch(error => console.error('Playback failed:', error));
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      audio.removeEventListener('pause', () => {});
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [currentSongIndex, isPlaying, handlePlayPause, handlePrevious, handleNext, playlist]);
+  }, [isPlaying, handlePlayPause, handlePrevious, handleNext]);
 
   return (
     <div className="music-player-container">
@@ -411,7 +400,6 @@ function App() {
         x-webkit-airplay="allow"
         webkit-playsinline="true"
         controls={false}
-        className="audio-element"
       />
     </div>
   );
