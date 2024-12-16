@@ -297,14 +297,7 @@ function App() {
 
     // Handle visibility change
     const handleVisibilityChange = () => {
-      if (navigator.userAgent.match(/(iPad|iPhone|iPod)/i)) {
-        // For iOS, mute the audio when the app goes to the background
-        if (document.hidden) {
-          audio.muted = true;
-        } else {
-          audio.muted = false;
-        }
-      } else if (document.hidden && isPlaying) {
+      if (document.hidden && isPlaying) {
         audio.play().catch(error => console.error('Playback failed:', error));
       }
     };
