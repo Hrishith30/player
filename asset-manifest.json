@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/player/static/css/main.825655f6.css",
-    "main.js": "/player/static/js/main.a3b2a95e.js",
+    "main.css": "/player/static/css/main.4e036b63.css",
+    "main.js": "/player/static/js/main.ee017805.js",
     "static/js/488.b5fb6f0b.chunk.js": "/player/static/js/488.b5fb6f0b.chunk.js",
     "static/media/Sooseki.mp3": "/player/static/media/Sooseki.5dad8c14b2e17612b514.mp3",
     "static/media/Pushpa Pushpa.mp3": "/player/static/media/Pushpa Pushpa.0dd65e436b03d630f63f.mp3",
@@ -20,12 +20,12 @@
     "static/media/Anuvanuvuu Lyrical  Om Bheem Bush  Sree Vishnu, Rahul, Priyadarshi  Arijit Singh  Sunny M.R..mp3": "/player/static/media/Anuvanuvuu Lyrical  Om Bheem Bush  Sree Vishnu, Rahul, Priyadarshi  Arijit Singh  Sunny M.R..544edab5a874293a987c.mp3",
     "static/media/Ayudha Pooja.mp3": "/player/static/media/Ayudha Pooja.40c050024a0656f57150.mp3",
     "index.html": "/player/index.html",
-    "main.825655f6.css.map": "/player/static/css/main.825655f6.css.map",
-    "main.a3b2a95e.js.map": "/player/static/js/main.a3b2a95e.js.map",
+    "main.4e036b63.css.map": "/player/static/css/main.4e036b63.css.map",
+    "main.ee017805.js.map": "/player/static/js/main.ee017805.js.map",
     "488.b5fb6f0b.chunk.js.map": "/player/static/js/488.b5fb6f0b.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.825655f6.css",
-    "static/js/main.a3b2a95e.js"
+    "static/css/main.4e036b63.css",
+    "static/js/main.ee017805.js"
   ]
 }
