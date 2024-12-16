@@ -8,17 +8,15 @@ import {
 function App() {
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
-  const [repeatMode, setRepeatMode] = useState('none');
+  const [repeatMode, setRepeatMode] = useState('none'); // 'none', 'one', 'all'
   const [shuffleMode, setShuffleMode] = useState(false);
   const [playlist, setPlaylist] = useState([]);
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [analyzerData, setAnalyzerData] = useState(new Uint8Array(64));
-  
   const audioRef = useRef(null);
   const progressBarRef = useRef(null);
   const analyzerRef = useRef(null);
@@ -38,6 +36,7 @@ function App() {
             url,
           };
         });
+
         setPlaylist(loadedSongs);
       } catch (error) {
         console.error('Error loading songs:', error);
@@ -47,33 +46,6 @@ function App() {
 
     loadSongs();
   }, []);
-
-  const initializeAudio = useCallback(() => {
-    if (!audioContextRef.current) {
-      try {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-        analyzerRef.current = audioContextRef.current.createAnalyser();
-        analyzerRef.current.fftSize = 128;
-
-        const audio = audioRef.current;
-        if (!audio) return;
-
-        const source = audioContextRef.current.createMediaElementSource(audio);
-        source.connect(analyzerRef.current);
-        analyzerRef.current.connect(audioContextRef.current.destination);
-
-        // Set initial audio properties
-        audio.volume = volume;
-        audio.preload = 'auto';
-      } catch (error) {
-        console.error('Audio initialization error:', error);
-      }
-    }
-
-    if (audioContextRef.current?.state === 'suspended') {
-      audioContextRef.current.resume();
-    }
-  }, [volume]);
 
   const handleNext = useCallback(() => {
     if (!playlist.length) return;
@@ -92,46 +64,40 @@ function App() {
 
   const handlePrevious = useCallback(() => {
     if (!playlist.length) return;
+
     const prevIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
     setCurrentSongIndex(prevIndex);
   }, [playlist.length, currentSongIndex]);
 
-  const handlePlayPause = useCallback(async () => {
+  const handlePlayPause = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    try {
-      if (audioContextRef.current?.state === 'suspended') {
-        await audioContextRef.current.resume();
-      }
-
-      if (isPlaying) {
-        await audio.pause();
-      } else {
-        await audio.play();
-      }
-      setIsPlaying(!isPlaying);
-    } catch (error) {
-      console.error('Playback error:', error);
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
     }
+
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play().catch((error) => console.error('Playback failed:', error));
+    }
+    setIsPlaying(!isPlaying);
   }, [isPlaying]);
 
   const handleProgressBarClick = (e) => {
     const rect = progressBarRef.current.getBoundingClientRect();
     const clickPosition = (e.clientX - rect.left) / rect.width;
     const newTime = clickPosition * duration;
+
     audioRef.current.currentTime = newTime;
     setCurrentTime(newTime);
   };
 
-  const handleTouchProgressBar = (e) => {
-    e.preventDefault();
-    const rect = progressBarRef.current.getBoundingClientRect();
-    const touch = e.touches[0];
-    const clickPosition = (touch.clientX - rect.left) / rect.width;
-    const newTime = clickPosition * duration;
-    audioRef.current.currentTime = newTime;
-    setCurrentTime(newTime);
+  const toggleMute = () => {
+    const audio = audioRef.current;
+    audio.muted = !isMuted;
+    setIsMuted(!isMuted);
   };
 
   const handleVolumeChange = (e) => {
@@ -141,20 +107,11 @@ function App() {
     setIsMuted(newVolume === 0);
   };
 
-  const handleVolumeTouch = (e) => {
-    e.preventDefault();
-    const rect = e.target.getBoundingClientRect();
-    const touch = e.touches[0];
-    const newVolume = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+  const handleTouchVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
     audioRef.current.volume = newVolume;
     setVolume(newVolume);
     setIsMuted(newVolume === 0);
-  };
-
-  const toggleMute = () => {
-    const audio = audioRef.current;
-    audio.muted = !isMuted;
-    setIsMuted(!isMuted);
   };
 
   const formatTime = (time) => {
@@ -168,7 +125,6 @@ function App() {
     setRepeatMode(modes[(modes.indexOf(repeatMode) + 1) % modes.length]);
   };
 
-  // Audio event listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -200,7 +156,7 @@ function App() {
     };
   }, [playlist, repeatMode, shuffleMode, handleNext, currentSongIndex]);
 
-  // Update audio source
+  // Modified useEffect to only update source when song changes
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !playlist[currentSongIndex]) return;
@@ -208,61 +164,69 @@ function App() {
     const currentSrc = audio.src;
     const newSrc = playlist[currentSongIndex].url;
 
+    // Only update the source if it's different
     if (currentSrc !== newSrc) {
       audio.src = newSrc;
       if (isPlaying) {
         audio.play().catch((error) => console.error('Playback failed:', error));
       }
     }
-  }, [currentSongIndex, playlist, isPlaying]);
+  }, [currentSongIndex, playlist]);
 
-  // Media Session API
-  useEffect(() => {
-    if ('mediaSession' in navigator && playlist[currentSongIndex]) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: playlist[currentSongIndex].title,
-        artist: 'Unknown Artist',
-        album: 'Unknown Album',
-      });
+  // Initialize audio context on user interaction
+  const initializeAudio = () => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      analyzerRef.current = audioContextRef.current.createAnalyser();
+      analyzerRef.current.fftSize = 128;
 
-      navigator.mediaSession.setActionHandler('play', handlePlayPause);
-      navigator.mediaSession.setActionHandler('pause', handlePlayPause);
-      navigator.mediaSession.setActionHandler('previoustrack', handlePrevious);
-      navigator.mediaSession.setActionHandler('nexttrack', handleNext);
-    }
-  }, [currentSongIndex, playlist, handlePlayPause, handlePrevious, handleNext]);
+      const audio = audioRef.current;
+      if (!audio) return;
 
-  // Analyzer update loop
-  useEffect(() => {
-    const updateAnalyzer = () => {
-      if (analyzerRef.current) {
-        const dataArray = new Uint8Array(analyzerRef.current.frequencyBinCount);
-        analyzerRef.current.getByteFrequencyData(dataArray);
-        setAnalyzerData(dataArray);
+      try {
+        const source = audioContextRef.current.createMediaElementSource(audio);
+        source.connect(analyzerRef.current);
+        analyzerRef.current.connect(audioContextRef.current.destination);
+      } catch (error) {
+        console.log('Audio already connected');
       }
-      requestAnimationFrame(updateAnalyzer);
-    };
+    }
 
-    const animationFrame = requestAnimationFrame(updateAnalyzer);
-    return () => cancelAnimationFrame(animationFrame);
-  }, []);
+    // Resume audio context if it's suspended
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+  };
 
-  // Initialize audio on user interaction
+  // Set up analyzer update loop
+  const updateAnalyzer = () => {
+    if (analyzerRef.current) {
+      const dataArray = new Uint8Array(analyzerRef.current.frequencyBinCount);
+      analyzerRef.current.getByteFrequencyData(dataArray);
+      setAnalyzerData(dataArray);
+    }
+    requestAnimationFrame(updateAnalyzer);
+  };
+
+  // Start analyzer update loop
+  const animationFrame = requestAnimationFrame(updateAnalyzer);
+
+  // Add click listener to initialize audio context
+  document.addEventListener('click', initializeAudio, { once: true });
+
+  // Add touch event listeners for mobile controls
   useEffect(() => {
-    const handleInteraction = () => {
+    const handleTouchStart = () => {
       initializeAudio();
     };
 
-    document.addEventListener('click', handleInteraction, { once: true });
-    document.addEventListener('touchstart', handleInteraction, { once: true });
+    document.addEventListener('touchstart', handleTouchStart, { once: true });
 
     return () => {
-      document.removeEventListener('click', handleInteraction);
-      document.removeEventListener('touchstart', handleInteraction);
+      document.removeEventListener('touchstart', handleTouchStart);
     };
-  }, [initializeAudio]);
+  }, []);
 
-  // Handle playlist click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (playlistRef.current && !playlistRef.current.contains(event.target) && 
@@ -279,6 +243,27 @@ function App() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showPlaylist]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // Add these properties for mobile background playback
+    audio.setAttribute('playsinline', 'true');
+    audio.setAttribute('webkit-playsinline', 'true');
+    audio.setAttribute('x-webkit-airplay', 'allow');
+
+    // Optional: Request wake lock to prevent device from sleeping
+    try {
+      if ('wakeLock' in navigator) {
+        navigator.wakeLock.request('screen').catch(err => 
+          console.log('Wake Lock error:', err)
+        );
+      }
+    } catch (err) {
+      console.log('Wake Lock API not supported');
+    }
+  }, []);
 
   return (
     <div className="music-player-container">
@@ -300,13 +285,7 @@ function App() {
           ))}
         </div>
 
-        <div 
-          className="progress-bar" 
-          ref={progressBarRef} 
-          onClick={handleProgressBarClick}
-          onTouchStart={handleTouchProgressBar}
-          onTouchMove={handleTouchProgressBar}
-        >
+        <div className="progress-bar" ref={progressBarRef} onClick={handleProgressBarClick}>
           <div
             className="progress"
             style={{ width: `${(currentTime / duration) * 100}%` }}
@@ -323,12 +302,8 @@ function App() {
           <button onClick={handlePrevious}>
             <FaStepBackward />
           </button>
-          <button 
-            onClick={handlePlayPause} 
-            className={`play-button ${isLoading ? 'loading' : ''}`}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Loading...' : isPlaying ? <FaPause /> : <FaPlay />}
+          <button onClick={handlePlayPause} className="play-button">
+            {isPlaying ? <FaPause /> : <FaPlay />}
           </button>
           <button onClick={handleNext}>
             <FaStepForward />
@@ -349,9 +324,7 @@ function App() {
             step="0.01"
             value={volume}
             onChange={handleVolumeChange}
-            onTouchStart={handleVolumeTouch}
-            onTouchMove={handleVolumeTouch}
-            className="volume-slider"
+            onTouchEnd={handleTouchVolumeChange}
           />
         </div>
 
@@ -380,12 +353,6 @@ function App() {
         ref={audioRef}
         playsInline
         preload="auto"
-        onLoadStart={() => setIsLoading(true)}
-        onCanPlay={() => setIsLoading(false)}
-        onError={(e) => {
-          console.error('Audio error:', e);
-          setIsLoading(false);
-        }}
       />
     </div>
   );
