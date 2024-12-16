@@ -265,6 +265,50 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // Enable background audio playback
+    const enableBackgroundPlayback = async () => {
+      try {
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.setActionHandler('play', handlePlayPause);
+          navigator.mediaSession.setActionHandler('pause', handlePlayPause);
+          navigator.mediaSession.setActionHandler('previoustrack', handlePrevious);
+          navigator.mediaSession.setActionHandler('nexttrack', handleNext);
+        }
+
+        // Request audio focus (Android)
+        if (audio.mozAudioChannelType) {
+          audio.mozAudioChannelType = 'content';
+        }
+
+        // Set audio session category (iOS)
+        if (window.webkit && window.webkit.messageHandlers) {
+          window.webkit.messageHandlers.toggleAudioSession?.postMessage("play");
+        }
+      } catch (error) {
+        console.error('Error setting up background playback:', error);
+      }
+    };
+
+    enableBackgroundPlayback();
+
+    // Handle visibility change
+    const handleVisibilityChange = () => {
+      if (document.hidden && isPlaying) {
+        audio.play().catch(error => console.error('Playback failed:', error));
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isPlaying, handlePlayPause, handlePrevious, handleNext]);
+
   return (
     <div className="music-player-container">
       <div className="player-controls">
@@ -353,6 +397,9 @@ function App() {
         ref={audioRef}
         playsInline
         preload="auto"
+        x-webkit-airplay="allow"
+        webkit-playsinline="true"
+        controls={false}
       />
     </div>
   );
