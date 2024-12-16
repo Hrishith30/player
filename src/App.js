@@ -23,6 +23,22 @@ function App() {
   const audioContextRef = useRef(null);
   const playlistRef = useRef(null);
 
+  const configureAudioSession = () => {
+    if (window.webkit && window.webkit.messageHandlers) {
+      // Set audio session category and options for iOS
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => {
+          audioRef.current.play();
+          setIsPlaying(true);
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+          audioRef.current.pause();
+          setIsPlaying(false);
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     const loadSongs = () => {
       try {
@@ -272,21 +288,36 @@ function App() {
     // Enable background audio playback
     const enableBackgroundPlayback = async () => {
       try {
+        // Configure audio session for iOS
+        configureAudioSession();
+
         if ('mediaSession' in navigator) {
           navigator.mediaSession.setActionHandler('play', handlePlayPause);
           navigator.mediaSession.setActionHandler('pause', handlePlayPause);
           navigator.mediaSession.setActionHandler('previoustrack', handlePrevious);
           navigator.mediaSession.setActionHandler('nexttrack', handleNext);
+
+          // Set metadata for iOS
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: playlist[currentSongIndex]?.title || 'Unknown',
+            artist: 'Unknown Artist',
+            album: 'Unknown Album',
+          });
         }
 
-        // Request audio focus (Android)
-        if (audio.mozAudioChannelType) {
-          audio.mozAudioChannelType = 'content';
-        }
+        // iOS specific settings
+        audio.setAttribute('playsinline', 'true');
+        audio.setAttribute('webkit-playsinline', 'true');
+        audio.setAttribute('x-webkit-airplay', 'allow');
 
         // Set audio session category (iOS)
         if (window.webkit && window.webkit.messageHandlers) {
-          window.webkit.messageHandlers.toggleAudioSession?.postMessage("play");
+          // Request audio session
+          document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isPlaying) {
+              audio.play().catch(error => console.error('Playback failed:', error));
+            }
+          });
         }
       } catch (error) {
         console.error('Error setting up background playback:', error);
@@ -307,7 +338,7 @@ function App() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isPlaying, handlePlayPause, handlePrevious, handleNext]);
+  }, [isPlaying, handlePlayPause, handlePrevious, handleNext, currentSongIndex, playlist]);
 
   return (
     <div className="music-player-container">
@@ -400,6 +431,7 @@ function App() {
         x-webkit-airplay="allow"
         webkit-playsinline="true"
         controls={false}
+        autoPlay={false}
       />
     </div>
   );
